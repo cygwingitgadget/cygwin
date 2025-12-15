@@ -710,6 +710,19 @@ is_console_app (const WCHAR *filename)
   HANDLE h;
   h = CreateFileW (filename, GENERIC_READ, FILE_SHARE_READ,
 		   NULL, OPEN_EXISTING, 0, NULL);
+  if (h == INVALID_HANDLE_VALUE && GetLastError () == ERROR_CANT_ACCESS_FILE)
+    {
+      UNICODE_STRING ustr;
+      RtlInitUnicodeString (&ustr, filename);
+      path_conv pc (&ustr, PC_SYM_FOLLOW);
+      if (!pc.error && pc.exists ())
+	{
+	  tmp_pathbuf tp;
+	  PWCHAR path = tp.w_get ();
+	  h = CreateFileW (pc.get_wide_win32_path (path), GENERIC_READ,
+		           FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+	}
+    }
   if (h == INVALID_HANDLE_VALUE)
     return false;
   char buf[1024];

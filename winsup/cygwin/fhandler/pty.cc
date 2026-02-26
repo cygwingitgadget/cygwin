@@ -2186,21 +2186,6 @@ fhandler_pty_master::write (const void *ptr, size_t len)
       if (!get_ttyp ()->pcon_start)
 	{ /* Pseudo console initialization has been done in above code. */
 	  pinfo pp (get_ttyp ()->pcon_start_pid);
-	  if (get_ttyp ()->switch_to_nat_pipe
-	      && get_ttyp ()->pty_input_state_eq (tty::to_cyg))
-	    {
-	      /* This accept_input() call is needed in order to transfer input
-		 which is not accepted yet to non-cygwin pipe. */
-	      WaitForSingleObject (input_mutex, mutex_timeout);
-	      if (get_readahead_valid ())
-		accept_input ();
-	      acquire_attach_mutex (mutex_timeout);
-	      fhandler_pty_slave::transfer_input (tty::to_nat, from_master,
-						  get_ttyp (),
-						  input_available_event);
-	      release_attach_mutex ();
-	      ReleaseMutex (input_mutex);
-	    }
 	  get_ttyp ()->pcon_start_pid = 0;
 	}
 

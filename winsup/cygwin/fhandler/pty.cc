@@ -1171,12 +1171,23 @@ fhandler_pty_slave::reset_switch_to_nat_pipe (void)
   DWORD wait_ret = WaitForSingleObject (pipe_sw_mutex, mutex_timeout);
   if (wait_ret == WAIT_TIMEOUT)
     return;
-  if (!nat_pipe_owner_self (get_ttyp ()->nat_pipe_owner_pid)
-      && process_alive (get_ttyp ()->nat_pipe_owner_pid))
+  if (process_alive (get_ttyp ()->nat_pipe_owner_pid))
     {
-      /* There is a process which owns nat pipe. */
-      ReleaseMutex (pipe_sw_mutex);
-      return;
+      if (!nat_pipe_owner_self (get_ttyp ()->nat_pipe_owner_pid))
+	{
+	  /* There is a process which owns nat pipe. */
+	  ReleaseMutex (pipe_sw_mutex);
+	  return;
+	}
+      /* We are the nat pipe owner.  Don't reset while a native process
+	 is still using the nat pipe -- check both pcon_activated and
+	 switch_to_nat_pipe since the latter stays true during pcon
+	 handovers when pcon_activated is briefly false. */
+      if (get_ttyp ()->pcon_activated || get_ttyp ()->switch_to_nat_pipe)
+	{
+	  ReleaseMutex (pipe_sw_mutex);
+	  return;
+	}
     }
   /* Clean up nat pipe state */
   get_ttyp ()->pty_input_state = tty::to_cyg;

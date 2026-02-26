@@ -489,6 +489,7 @@ fhandler_pty_master::accept_input ()
   HANDLE write_to = get_output_handle ();
   tmp_pathbuf tp;
   if (to_be_read_from_nat_pipe ()
+      && !get_ttyp ()->pcon_activated
       && get_ttyp ()->pty_input_state == tty::to_nat)
     {
       /* This code is reached if non-cygwin app is foreground and
@@ -2208,8 +2209,18 @@ fhandler_pty_master::write (const void *ptr, size_t len)
   WaitForSingleObject (input_mutex, mutex_timeout);
   if (to_be_read_from_nat_pipe () && get_ttyp ()->pcon_activated
       && get_ttyp ()->pty_input_state == tty::to_nat)
-    { /* Reaches here when non-cygwin app is foreground and pseudo console
-	 is activated. */
+    {
+      /* Flush any stale readahead data from a prior line_edit call that
+	 ran while pty_input_state was temporarily to_cyg (e.g. during a
+	 setpgid_aux transition when a cygwin child of the native process
+	 started or exited).  Without this, the readahead contents would
+	 be stranded and emitted after the direct WriteFile below,
+	 breaking chronological order. */
+      if (get_readahead_valid ())
+	{
+	  accept_input ();
+	}
+
       tmp_pathbuf tp;
       char *buf = (char *) ptr;
       size_t nlen = len;

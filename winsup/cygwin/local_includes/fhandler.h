@@ -2473,6 +2473,7 @@ class fhandler_pty_slave: public fhandler_pty_common
 
   int open (int flags, mode_t mode = 0);
   bool open_setup (int flags);
+  void post_open_setup (int fd);
   ssize_t write (const void *ptr, size_t len);
   void read (void *ptr, size_t& len);
   int init (HANDLE, DWORD, mode_t, int64_t = 0);
@@ -2541,6 +2542,7 @@ class fhandler_pty_slave: public fhandler_pty_common
   void setpgid_aux (pid_t pid);
   static void release_ownership_of_nat_pipe (tty *ttyp, fhandler_termios *fh);
   void replace_nat_handles (HANDLE new_input, HANDLE new_output);
+  void fixup_input_state_for_cygwin_app (void);
 };
 
 #define __ptsname(buf, unit) __small_sprintf ((buf), "/dev/pty%d", (unit))

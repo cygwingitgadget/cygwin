@@ -67,3 +67,8 @@ $ winsup/testsuite/winsup.api/pthread/cancel1
 * To run an individual test program against the test DLL under gdb, e.g.:
 
 $ PATH="<build_tooldir>/winsup/testsuite/testinst/bin/:$PATH" cygrun -notimeout "gdb winsup.api/systemcall"
+
+The exec-token test creates a private console and compares references to
+child process primary tokens between a normal exit control and an exec()
+call.  It needs no external programs or administrator privileges.  It skips
+with a diagnostic if console or token-query access is unavailable.

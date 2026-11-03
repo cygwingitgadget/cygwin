@@ -43,6 +43,7 @@ check_PROGRAMS = \
 	winsup.api/mmaptest04 \
 	winsup.api/msgtest \
 	winsup.api/nullgetcwd \
+	winsup.api/recv-unconnected \
 	winsup.api/resethand \
 	winsup.api/semtest \
 	winsup.api/shmtest \

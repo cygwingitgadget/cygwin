@@ -546,6 +546,7 @@ struct wsa_event
   long events;
   int  connect_errorcode;
   pid_t owner;
+  LONG connect_attempted;
 };
 
 class fhandler_socket: public fhandler_base

@@ -791,7 +791,11 @@ fhandler_socket_inet::connect (const struct sockaddr *name, int namelen)
      Set connect_state before calling connect, otherwise a race condition with
      an already running select or poll might occur. */
   if (connect_state () == unconnected || connect_state () == connect_failed)
-    connect_state (connect_pending);
+    {
+      if (get_socket_type () == SOCK_STREAM)
+	InterlockedExchange (&wsock_events->connect_attempted, 1);
+      connect_state (connect_pending);
+    }
 
   int res = ::connect (get_socket (), (struct sockaddr *) &sst, namelen);
   if (!res)
@@ -910,6 +914,7 @@ fhandler_socket_inet::accept4 (struct sockaddr *peer, int *len, int flags)
 	      /* No locking necessary at this point. */
 	      sock->wsock_events->events = wsock_events->events | FD_WRITE;
 	      sock->wsock_events->owner = wsock_events->owner;
+	      InterlockedExchange (&sock->wsock_events->connect_attempted, 1);
 	      sock->connect_state (connected);
 	      fd = sock;
 	      if (fd <= 2)
@@ -1089,6 +1094,14 @@ fhandler_socket_inet::recv_internal (LPWSAMSG wsamsg, bool use_recvmsg)
   ULONG &wsacnt = wsamsg->dwBufferCount;
   static NO_COPY LPFN_WSARECVMSG WSARecvMsg;
   bool read_oob = false;
+
+  if (get_socket_type () == SOCK_STREAM
+      && !InterlockedCompareExchange (&wsock_events->connect_attempted, 0, 0))
+    {
+      WSASetLastError (WSAENOTCONN);
+      set_winsock_errno ();
+      return SOCKET_ERROR;
+    }
 
   /* CV 2014-10-26: Do not check for the connect_state at this point.  In
      certain scenarios there's no way to check the connect state reliably.

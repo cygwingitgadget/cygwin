@@ -16,7 +16,7 @@ override CC = @MINGW_CC@
 override CXX = @MINGW_CXX@
 AM_CPPFLAGS =
 
-noinst_PROGRAMS = cygrun cygload
+noinst_PROGRAMS = cygrun cygload pty-native-input
 
 cygrun_SOURCES = \
 	../cygrun.c
@@ -24,3 +24,6 @@ cygrun_SOURCES = \
 cygload_SOURCES = \
 	../winsup.api/cygload.cc
 cygload_LDFLAGS=-static -Wl,-e,cygloadCRTStartup
+
+pty_native_input_SOURCES = \
+	pty-native-input.c

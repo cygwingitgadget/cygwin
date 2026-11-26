@@ -36,6 +36,7 @@ check_PROGRAMS = \
 	winsup.api/crlf \
 	winsup.api/devdsp \
 	winsup.api/devzero \
+	winsup.api/fifo-fork \
 	winsup.api/iospeed \
 	winsup.api/mmaptest01 \
 	winsup.api/mmaptest02 \

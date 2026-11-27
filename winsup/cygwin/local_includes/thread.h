@@ -269,6 +269,7 @@ public:
 
   /* List support calls */
   class pthread_key *next;
+  class pthread_key *prev;
 private:
   static List<pthread_key> keys;
   void _fixup_before_fork ();
